@@ -1,0 +1,46 @@
+# 密钥与本地配置
+.env
+*.env.local
+
+# 运行产生的数据（保留目录占位文件）
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/uploads/*
+!data/uploads/.gitkeep
+data/vector_db/*
+!data/vector_db/.gitkeep
+data/evaluation/results/*
+!data/evaluation/results/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.coverage
+htmlcov/
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.streamlit/
+
+# 本地模型缓存与打包产物（第二轮新增）
+.cache/
+models/
+*.safetensors
+*.onnx
+*.bin
+*.zip
+dist/
+release/
+*.log
+logs/
+
+# 平台项目数据（不属于交付包）
+.workbuddy/

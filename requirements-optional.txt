@@ -1,0 +1,5 @@
+# 可选依赖：仅在启用本地语义向量 / Chroma / 本地 Rerank 模型时安装
+# 体积较大（torch 等数百 MB），且 Python 3.13 下需自行确认 wheel 可用性。
+# 安装命令：python -m pip install -r requirements-optional.txt
+sentence-transformers>=3.0
+chromadb>=0.5

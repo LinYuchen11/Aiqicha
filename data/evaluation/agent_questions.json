@@ -1,0 +1,181 @@
+{
+  "说明": "Agent 专项评估人工标注题集：用于评测意图识别、工具选择、工具执行与任务完成四项指标。期望值均以「Mock 规则决策器」下系统真实、可复现的行为为准人工编写，未编造系统做不到的期望；工单创建类题目信息完整时只到「待确认」，不会真正写库。",
+  "生成方式": "人工编写",
+  "评估对象": "Mock 规则决策器（无 .env、无 DeepSeek Key，全部走规则决策器 + 规则规划器 + 本地抽取式模拟器）",
+  "字段说明": {
+    "id": "题号",
+    "message": "本轮送入 chat() 的用户消息",
+    "类别": "题目标签，用于覆盖度统计",
+    "expected_intent": "期望意图，取值见 backend/agent/intent.py 的 INTENT_LABELS",
+    "expected_tools": "期望被调用的工具名列表（按集合比较）；空列表表示本轮不应调用任何工具",
+    "needs_confirmation": "是否期望返回 pending_confirmation（待确认工单）；为 true 时评估不调用 confirm，绝不写库",
+    "expected_completion": "人读的「怎样算任务完成」描述",
+    "completion_rule": "程序判定规则标识，评估服务据此确定性判定是否完成（见服务内 RULE_DEFINITIONS 与报告）",
+    "context": "可选；多轮题的前置用户消息，评估时在同一 session 内先依次发送，再发送 message，以最后一轮响应作为判定对象"
+  },
+  "问题集": [
+    {
+      "id": "Q01",
+      "message": "员工申请年假需要提前几个工作日提交？",
+      "类别": "知识查询",
+      "expected_intent": "knowledge_query",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "返回非空的中文答案，且带有至少一条知识库来源（sources 非空）；不调用任何工具、不产生待确认工单、不抛异常。",
+      "completion_rule": "answer_and_sources"
+    },
+    {
+      "id": "Q02",
+      "message": "差旅费报销对发票有什么要求，需要在多久之内提交？",
+      "类别": "知识查询",
+      "expected_intent": "knowledge_query",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "返回非空的中文答案且带知识库来源；不调用工具、不产生待确认工单、不抛异常。",
+      "completion_rule": "answer_and_sources"
+    },
+    {
+      "id": "Q03",
+      "message": "常规办公用品每月什么时候可以申领？",
+      "类别": "知识查询",
+      "expected_intent": "knowledge_query",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "返回非空的中文答案且带知识库来源；不调用工具、不产生待确认工单、不抛异常。",
+      "completion_rule": "answer_and_sources"
+    },
+    {
+      "id": "Q04",
+      "message": "企业内部采购申请需要经过哪些审批流程？",
+      "类别": "知识查询",
+      "expected_intent": "knowledge_query",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "返回非空的中文答案且带知识库来源；不调用工具、不产生待确认工单、不抛异常。",
+      "completion_rule": "answer_and_sources"
+    },
+    {
+      "id": "Q05",
+      "message": "公司 VPN 连不上，应该怎么排查处理？",
+      "类别": "IT 咨询",
+      "expected_intent": "it_consult",
+      "expected_tools": ["it_service_query"],
+      "needs_confirmation": false,
+      "expected_completion": "返回非空答案；真实调用 it_service_query 工具且其结果含 IT 服务目录条目（items 列表）；不产生待确认工单、不抛异常。",
+      "completion_rule": "answer_and_tool_items"
+    },
+    {
+      "id": "Q06",
+      "message": "我想安装 Photoshop 设计软件，需要走什么流程？",
+      "类别": "IT 咨询",
+      "expected_intent": "it_consult",
+      "expected_tools": ["it_service_query"],
+      "needs_confirmation": false,
+      "expected_completion": "返回非空答案；真实调用 it_service_query 工具且结果含 items 列表；不产生待确认工单、不抛异常。",
+      "completion_rule": "answer_and_tool_items"
+    },
+    {
+      "id": "Q07",
+      "message": "帮我查询工单 IT-20261116-0001 的处理状态",
+      "类别": "工单查询",
+      "expected_intent": "ticket_query",
+      "expected_tools": ["ticket_query"],
+      "needs_confirmation": false,
+      "expected_completion": "返回非空答案；真实调用 ticket_query 工具且结果含 found 字段（库中无该编号时如实说明未查询到，也算完成）；不写库、不抛异常。",
+      "completion_rule": "answer_and_tool_found"
+    },
+    {
+      "id": "Q08",
+      "message": "查询一下我的工单进度怎么样了",
+      "类别": "工单查询",
+      "expected_intent": "ticket_query",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "未提供工单编号时主动追问（答案含追问提示），不执行任何工具、不产生待确认工单、不抛异常。",
+      "completion_rule": "answer_and_clarify"
+    },
+    {
+      "id": "Q09",
+      "message": "帮我创建工单，公司电脑无法开机，联系方式 13800138000",
+      "类别": "工单创建",
+      "expected_intent": "ticket_create",
+      "expected_tools": [],
+      "needs_confirmation": true,
+      "expected_completion": "信息完整时生成待确认工单（pending_confirmation 为字典且「字段」非空），仅到待确认、不调用 ticket_create 工具写库、不抛异常；评估不调用 confirm。",
+      "completion_rule": "answer_and_pending"
+    },
+    {
+      "id": "Q10",
+      "message": "帮我报修一个网络故障",
+      "类别": "工单创建",
+      "expected_intent": "ticket_create",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "缺少联系方式时主动追问补充信息（答案含追问提示），不生成待确认工单、不调用工具写库、不抛异常。",
+      "completion_rule": "answer_and_clarify"
+    },
+    {
+      "id": "Q11",
+      "message": "你好",
+      "类别": "闲聊",
+      "expected_intent": "chitchat",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "返回非空的能力说明类闲聊回答；不调用工具、不产生待确认工单、不抛异常。",
+      "completion_rule": "answer"
+    },
+    {
+      "id": "Q12",
+      "message": "你是谁？",
+      "类别": "闲聊",
+      "expected_intent": "chitchat",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "返回非空的能力说明类闲聊回答；不调用工具、不产生待确认工单、不抛异常。",
+      "completion_rule": "answer"
+    },
+    {
+      "id": "Q13",
+      "message": "公司有没有针对月球出差的特殊交通补贴条款？",
+      "类别": "无答案",
+      "expected_intent": "knowledge_query",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "知识库无命中时如实拒答：sources 为空且回答含「没有检索到」/「无法据此给出」等说明，不臆造条款；不调用工具、不抛异常。",
+      "completion_rule": "answer_and_no_answer"
+    },
+    {
+      "id": "Q14",
+      "message": "帮我订一张明天去上海的机票",
+      "类别": "能力外",
+      "expected_intent": "unknown",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "超出能力范围时返回非空的能力边界说明；不调用工具、不产生待确认工单、不抛异常。",
+      "completion_rule": "answer"
+    },
+    {
+      "id": "Q15",
+      "message": "如果打印机一直卡纸解决不了，帮我提交一个工单",
+      "类别": "多步骤",
+      "expected_intent": "multi_step",
+      "expected_tools": [],
+      "needs_confirmation": false,
+      "expected_completion": "识别为条件性的多步骤综合任务，返回非空的分步建议；本轮不真正创建工单、不调用工具写库、不产生待确认、不抛异常。",
+      "completion_rule": "answer"
+    },
+    {
+      "id": "Q16",
+      "message": "补充：所属部门是技术部，联系电话 13900139000",
+      "类别": "多轮补答",
+      "expected_intent": "ticket_create",
+      "expected_tools": [],
+      "needs_confirmation": true,
+      "expected_completion": "上一轮已生成工单草稿、本轮为补充回答：系统应恢复「工单创建」挂起意图并重新生成待确认工单（pending_confirmation「字段」非空）；仅到待确认、不写库、不抛异常；评估不调用 confirm。",
+      "completion_rule": "answer_and_pending",
+      "context": [
+        "帮我创建工单，笔记本无法开机，联系方式 13800138000"
+      ]
+    }
+  ]
+}
