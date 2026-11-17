@@ -32,7 +32,8 @@ Thumbs.db
 
 # 本地模型缓存与打包产物（第二轮新增）
 .cache/
-models/
+# 仅忽略项目根目录的本地模型缓存，不能写成 models/（会误伤源码包 backend/models/）
+/models/
 *.safetensors
 *.onnx
 *.bin
